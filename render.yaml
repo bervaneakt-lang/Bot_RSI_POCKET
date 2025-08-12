@@ -1,1 +1,7 @@
-python test_telegram.py
+services:
+  - type: web
+    name: bot-rsi-pocket
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python test_telegram.py
