@@ -5,3 +5,4 @@ yfinance==0.2.40 --no-deps
 pandas
 numpy
 requets
+peewee>=3.15.0,<4
