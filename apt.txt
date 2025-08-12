@@ -1,3 +1,5 @@
 libjpeg-dev
 zlib1g-dev
 libpng-dev
+libtiff-dev
+libopenjp2-7-dev
