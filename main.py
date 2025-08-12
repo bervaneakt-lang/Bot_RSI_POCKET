@@ -22,7 +22,14 @@ paris_tz = pytz.timezone("Europe/Paris")
 
 def get_rsi():
     data = yf.download(SYMBOL, period="2d", interval=INTERVAL)
-    data['RSI'] = ta.momentum.RSIIndicator(data['Close'], RSI_PERIOD).rsi()
+    
+    # Récupérer uniquement les prix de clôture
+    close_prices = data['Close']
+    if isinstance(close_prices, pd.DataFrame):
+        close_prices = close_prices.iloc[:, 0]  # On garde juste la première colonne
+
+    # Calcul du RSI
+    data['RSI'] = ta.momentum.RSIIndicator(close_prices, RSI_PERIOD).rsi()
     rsi_value = data['RSI'].iloc[-1]
     return rsi_value
 
