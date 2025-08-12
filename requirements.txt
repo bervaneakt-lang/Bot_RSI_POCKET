@@ -3,3 +3,4 @@ pandas
 numpy
 requests
 ta
+python-telegram-bot==13.15
