@@ -5,10 +5,8 @@ import time
 import datetime
 import pytz
 import warnings
-import threading
 from telegram import Bot
 from flask import Flask
-import os
 
 print("🚀 Script en cours de démarrage...")
 
@@ -33,9 +31,17 @@ try:
 except Exception as e:
     print(f"❌ Erreur initialisation bot Telegram: {e}")
 
+# Test d’envoi de message au démarrage
+try:
+    bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="🔍 Test : connexion Telegram OK ✅")
+    print("✅ Message de test envoyé avec succès.")
+except Exception as e:
+    print(f"❌ Erreur lors de l'envoi du message de test : {e}")
+
 paris_tz = pytz.timezone("Europe/Paris")
 
 def get_rsi(symbol):
+    print(f"📊 Téléchargement des données pour {symbol}...")
     data = yf.download(symbol, period="2d", interval=INTERVAL)
     close_prices = data['Close']
 
@@ -52,12 +58,22 @@ def send_telegram(message):
     except Exception as e:
         print(f"❌ Erreur envoi Telegram: {e}")
 
-def rsi_loop():
-    send_telegram("✅ Bot RSI démarré et en surveillance sur EUR/USD, GBP/USD et USD/JPY")
-    print("✅ Bot démarré... Surveillance RSI en cours.")
-    
+# Message de démarrage
+send_telegram("✅ Bot RSI démarré et en surveillance sur EUR/USD, GBP/USD et USD/JPY")
+print("✅ Bot démarré... Surveillance RSI en cours.")
+
+# ---- Flask pour Render ----
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot RSI actif 🚀"
+
+# ---- Boucle principale ----
+def bot_loop():
     while True:
         now = datetime.datetime.now(paris_tz)
+
         if 8 <= now.hour < 22:  # heures actives
             for symbol in SYMBOLS:
                 try:
@@ -78,21 +94,14 @@ def rsi_loop():
 
                 except Exception as e:
                     print(f"❌ Erreur traitement {symbol} : {e}")
+
         else:
             print(f"{now.strftime('%H:%M:%S')} | ⏸ Marché inactif. Pause...")
 
         time.sleep(60)
 
-# Lancer la boucle RSI dans un thread séparé
-threading.Thread(target=rsi_loop, daemon=True).start()
-
-# Serveur Flask
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "✅ Bot RSI est en ligne et fonctionne."
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+# Lancer bot et Flask
+if __name__ == '__main__':
+    import threading
+    threading.Thread(target=bot_loop, daemon=True).start()
+    app.run(host='0.0.0.0', port=10000)
