@@ -1,4 +1,3 @@
-import os
 import yfinance as yf
 import pandas as pd
 import ta
@@ -6,9 +5,12 @@ import time
 import datetime
 import pytz
 import warnings
+import threading
 from telegram import Bot
 from flask import Flask
-from threading import Thread
+import os
+
+print("🚀 Script en cours de démarrage...")
 
 # -------- CONFIG --------
 SYMBOLS = ["EURUSD=X", "GBPUSD=X", "JPY=X"]  # EUR/USD, GBP/USD, USD/JPY
@@ -25,10 +27,14 @@ TELEGRAM_CHAT_ID = "7971098484"
 # Masquer les warnings inutiles
 warnings.filterwarnings("ignore")
 
-bot = Bot(token=TELEGRAM_TOKEN)
+try:
+    bot = Bot(token=TELEGRAM_TOKEN)
+    print("✅ Bot Telegram initialisé avec succès.")
+except Exception as e:
+    print(f"❌ Erreur initialisation bot Telegram: {e}")
+
 paris_tz = pytz.timezone("Europe/Paris")
 
-# ---- BOT LOGIC ----
 def get_rsi(symbol):
     data = yf.download(symbol, period="2d", interval=INTERVAL)
     close_prices = data['Close']
@@ -40,13 +46,18 @@ def get_rsi(symbol):
     return data['RSI'].iloc[-1]
 
 def send_telegram(message):
-    bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+    try:
+        bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+        print(f"📨 Message envoyé sur Telegram : {message}")
+    except Exception as e:
+        print(f"❌ Erreur envoi Telegram: {e}")
 
-def start_bot():
+def rsi_loop():
     send_telegram("✅ Bot RSI démarré et en surveillance sur EUR/USD, GBP/USD et USD/JPY")
+    print("✅ Bot démarré... Surveillance RSI en cours.")
+    
     while True:
         now = datetime.datetime.now(paris_tz)
-
         if 8 <= now.hour < 22:  # heures actives
             for symbol in SYMBOLS:
                 try:
@@ -64,23 +75,24 @@ def start_bot():
                         send_telegram(f"🚨 Signal clair SURACHAT {symbol} ({rsi:.2f}) à {heure_str}")
                     elif rsi <= RSI_OVERSOLD:
                         send_telegram(f"🚨 Signal clair SURVENTE {symbol} ({rsi:.2f}) à {heure_str}")
+
                 except Exception as e:
-                    print(f"Erreur pour {symbol} : {e}")
+                    print(f"❌ Erreur traitement {symbol} : {e}")
+        else:
+            print(f"{now.strftime('%H:%M:%S')} | ⏸ Marché inactif. Pause...")
 
         time.sleep(60)
 
-# ---- FLASK SERVER FOR RENDER ----
+# Lancer la boucle RSI dans un thread séparé
+threading.Thread(target=rsi_loop, daemon=True).start()
+
+# Serveur Flask
 app = Flask(__name__)
 
-@app.route('/')
+@app.route("/")
 def home():
-    return "Bot is running!"
+    return "✅ Bot RSI est en ligne et fonctionne."
 
-def run_flask():
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-
-# ---- RUN BOTH ----
 if __name__ == "__main__":
-    Thread(target=run_flask).start()
-    start_bot()
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
