@@ -10,3 +10,6 @@ python-telegram-bot==20.3
 # Autres dépendances utiles
 requests
 yfinance
+Pillow
+pytz
+Flask
