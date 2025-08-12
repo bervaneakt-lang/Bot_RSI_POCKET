@@ -1,5 +1,10 @@
+build-essential
+libssl-dev
+libffi-dev
 libjpeg-dev
 zlib1g-dev
 libpng-dev
 libtiff-dev
 libopenjp2-7-dev
+libxml2-dev
+libxslt-dev
