@@ -1,4 +1,4 @@
-# Forcer une version de Python compatible avec imghdr
+# Forcer une version compatible
 python_version<3.13
 
 # Librairies principales
@@ -6,10 +6,9 @@ pandas
 numpy
 ta
 python-telegram-bot==20.3
-
-# Autres dépendances utiles
-requests
 yfinance
-Pillow
+requests
+flask
+
+# Autres utilitaires
 pytz
-Flask
