@@ -1,4 +1,3 @@
-# Forcer une version de Python compatible
 python_version<3.13
 
 # Librairies principales
@@ -8,8 +7,4 @@ ta
 python-telegram-bot==20.3
 yfinance
 requests
-flask
-pytz
-
-# Pour éviter les problèmes de parsing HTML avec yfinance
-lxml
+Flask
